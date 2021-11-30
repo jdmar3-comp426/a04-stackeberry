@@ -18,6 +18,7 @@ var HTTP_PORT = 5000
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
+
 // READ (HTTP method GET) at root endpoint /app/
 app.get("/app/", (req, res, next) => {
     res.json({"message":"Your API works! (200)"});
@@ -29,7 +30,7 @@ app.get("/app/", (req, res, next) => {
 app.post("/app/new/", (req, res) => {
 	const stmt = db.prepare("INSERT INTO userinfo (user, pass) VALUES (?, ?)");
 	const info = stmt.run(req.body.user, md5(req.body.pass));
-	res.status(201).json({"message": info.changes+ " record created: ID " + info.lastInsertRowid + " (201)"});
+	res.status(201).json({"message": `1 record created: ID ${info.lastInsertRowid} (201)`});
 });
 
 // READ a list of all users (HTTP method GET) at endpoint /app/users/
@@ -40,7 +41,7 @@ app.get("/app/users", (req, res) => {
 
 // READ a single user (HTTP method GET) at endpoint /app/user/:id
 app.get("/app/users/:id", (req, res) => {
-	const stmt = db.prepare("SELECT * FROM userinfo WHERE id = ?");
+	const stmt = db.prepare("SELECT * FROM userinfo WHERE id = ?").all(req.params.id);
 	res.status(200).json(stmt);
 });
 
@@ -48,7 +49,7 @@ app.get("/app/users/:id", (req, res) => {
 app.patch("/app/update/user/:id", (req, res) => {
 	const stmt = db.prepare("UPDATE userinfo SET user = COALESCE(?,user), pass = COALESCE(?,pass) WHERE id = ?")
 	const info = stmt.run(req.body.user, md5(req.body.pass), req.params.id);
-	res.status(200).json({"message": info.changes+ " record updated: ID " +req.params.id + " (200)"});
+	res.status(405).json({"message": `1 record updated: ID ${req.params.id} (405)`});
 });
 
 // DELETE a single user (HTTP method DELETE) at endpoint /app/delete/user/:id
